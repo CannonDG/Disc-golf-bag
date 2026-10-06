@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Bag — Disc Golf Tracker</title>
+<style>
+:root{color-scheme:light;--bg:#f6f2fc;--card:#ffffff;--ink:#1a1030;--mut:#6f6488;--line:#e6dcf5;--acc:#6d28d9;--acc-ink:#fff;--under:#2f6fe0;--over:#e0701f;--sh:0 1px 2px rgba(60,20,120,.06),0 6px 18px rgba(60,20,120,.08);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0a0612;--card:#150f22;--ink:#f1eaff;--mut:#9a8bb8;--line:#2a1f40;--acc:#a78bfa;--acc-ink:#0a0612;--under:#6fa3ff;--over:#f5a35c;--sh:0 1px 2px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0a0612;--card:#150f22;--ink:#f1eaff;--mut:#9a8bb8;--line:#2a1f40;--acc:#a78bfa;--acc-ink:#0a0612;--under:#6fa3ff;--over:#f5a35c;--sh:0 1px 2px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px 40px}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+h1{font-size:30px;letter-spacing:-.02em;margin:4px 0 14px;font-weight:800}
+h1 small{display:block;font-size:13px;font-weight:500;color:var(--mut);letter-spacing:0;margin-top:2px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;transition:transform .08s}
+button:active{transform:scale(.97)}
+button.p{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:700}
+button.sm{padding:5px 11px;font-size:13px;border-radius:9px}
+input,select,textarea{font:inherit;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.tiles div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--sh)}
+.tiles b{display:block;font-size:28px;line-height:1.1;font-weight:800;font-variant-numeric:tabular-nums}
+.tiles span{font-size:12px;color:var(--mut)}
+.tiles .u b{color:var(--under)}.tiles .o b{color:var(--over)}
+.bar{display:flex;gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0 8px}
+.bar input{flex:1;border-radius:99px;padding-left:16px}
+.bar button{border-radius:99px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.tabs button{white-space:nowrap;border-radius:99px;padding:6px 13px;font-size:13px;color:var(--mut)}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.disc{--dc:#888;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.disc:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--dc)}
+.top{display:flex;align-items:center;gap:12px;padding-left:4px}
+.puck{width:46px;height:46px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55),transparent 45%),var(--dc);display:grid;place-items:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.28),inset 0 -3px 6px rgba(0,0,0,.25)}
+.puck i{font-style:normal;font-weight:800;font-size:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.info{flex:1;min-width:0}
+.nm{font-weight:800;font-size:18px;letter-spacing:-.01em}
+.meta{color:var(--mut);font-size:12.5px}
+.badge{padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;border:1.5px solid currentColor;white-space:nowrap;align-self:flex-start}
+.u{color:var(--under)}.o{color:var(--over)}.z{color:var(--mut)}
+.body{display:flex;gap:12px;align-items:center;margin-top:12px;padding-left:4px}
+.tbl{flex:1;display:grid;grid-template-columns:52px repeat(4,1fr);gap:5px;align-items:center;font-size:13px;text-align:center;font-variant-numeric:tabular-nums}
+.tbl .h{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.tbl .rl{text-align:left;font-size:12px;color:var(--mut);font-weight:600}
+.tbl .c{background:var(--bg);border-radius:8px;padding:5px 0;border:1px solid transparent}
+.tbl .c.ch{border-color:var(--dc);font-weight:800;background:transparent;box-shadow:inset 0 0 0 1px var(--dc)}
+svg.fl{width:104px;height:136px;flex:none;background:var(--bg);border-radius:14px}
+.gauge{margin:14px 4px 0;padding-left:4px}
+.gt{position:relative;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--under),var(--line) 50%,var(--over))}
+.gt i{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%)}
+.gt .gf{border:2px solid var(--mut);background:var(--card)}
+.gt .ga{background:var(--ink);border:2px solid var(--card);box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.gl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);margin-top:5px}
+.note{font-size:13px;margin:10px 4px 0;padding:8px 10px;border-radius:10px;background:var(--bg);color:var(--mut)}
+.acts{margin-top:10px;display:flex;gap:6px;padding-left:4px}
+.empty{text-align:center;color:var(--mut);padding:40px 10px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:9}
+.modal.show{display:flex}
+.sheet{margin-top:auto;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));width:100%;max-width:540px}
+@media (min-width:600px){.modal{padding:16px}.sheet{border-radius:22px;margin:auto}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+label{font-size:12px;color:var(--mut);display:block;margin:10px 0 3px;font-weight:600}
+.pre{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.leg{font-size:12px;color:var(--mut);margin-top:10px;text-align:center}
+.quick{display:flex;gap:8px;margin-bottom:12px}.quick button{flex:1;border-radius:99px}
+button[hidden]{display:none}
+.cl{max-height:52vh;overflow-y:auto;margin-top:8px}
+.cr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><h1>🥏 My Bag<small>Factory numbers vs. how each disc really flies</small></h1><button class="sm" id="tg" onclick="toggleTheme()" aria-label="Toggle light and dark mode"></button></div>
+  <div class="tiles"><div><b id="s1">0</b><span>In the bag</span></div><div class="u"><b id="s2">0</b><span>Run understable</span></div><div class="o"><b id="s3">0</b><span>Run overstable</span></div></div>
+  <div class="bar"><input id="q" placeholder="Search discs…" oninput="render()"></div>
+  <div class="quick"><button class="p" onclick="openCat()">📚 Catalog</button><button id="scanBtn" onclick="scanClick()">📷 Scan disc</button><button onclick="openForm()">+ Custom</button></div>
+  <input type="file" id="cam" accept="image/*" capture="environment" hidden onchange="scanDone(this)">
+  <div class="tabs" id="tabs"></div>
+  <div id="list"></div>
+  <div class="leg">Flight paths show a right-hand backhand throw. Dashed = factory numbers, solid = how it really flies for you.</div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<script>
+var TYPES=['Distance driver','Fairway driver','Midrange','Putter','Other'];
+var discs=[],filter='All',editing=null;
+var KEY='discgolf-bag-v1';
+function load(){try{var r=localStorage.getItem(KEY);if(r)discs=JSON.parse(r)||[]}catch(e){discs=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(discs))}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(n){return (Math.round(n*2)/2).toString()}
+function verdict(d){
+  var k=(d.a[2]+d.a[3])-(d.f[2]+d.f[3]);
+  if(k<=-3)return['Super understable','u'];
+  if(k<=-1.5)return['Understable','u'];
+  if(k<=-.5)return['Slightly understable','u'];
+  if(k<.5)return['Flies as stated','z'];
+  if(k<1.5)return['Slightly overstable','o'];
+  if(k<3)return['Overstable','o'];
+  return['Beefy','o'];
+}
+function path(f){
+  var t=f[2],fd=f[3],s=f[0],out='';
+  for(var i=0;i<=20;i++){
+    var u=i/20;
+    var lat=(-t*13)*Math.sin(u*Math.PI*.7)-fd*11*Math.pow(u,3);
+    var x=Math.max(4,Math.min(92,48+lat));
+    var y=118-100*u*(0.6+0.4*Math.min(s,14)/14);
+    out+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+  }
+  return out;
+}
+function nums(a,ref){
+  return '<span class="n">'+a.map(function(v,i){return '<span class="'+(ref&&ref[i]!==v?'ch':'')+'">'+fmt(v)+'</span>'}).join('')+'</span>';
+}
+function tbl(d){
+  var L=['Speed','Glide','Turn','Fade'],h='<div></div>'+L.map(function(l){return '<div class="h">'+l+'</div>'}).join('');
+  var r1='<div class="rl">Factory</div>'+d.f.map(function(v){return '<div class="c">'+fmt(v)+'</div>'}).join('');
+  var r2='<div class="rl">You</div>'+d.a.map(function(v,i){return '<div class="c'+(v!==d.f[i]?' ch':'')+'">'+fmt(v)+'</div>'}).join('');
+  return h+r1+r2;
+}
+function gauge(d){
+  function pos(f){return Math.max(3,Math.min(97,((f[2]+f[3])+6)/12*100))}
+  return '<div class="gauge"><div class="gt"><i class="gf" style="left:'+pos(d.f)+'%"></i><i class="ga" style="left:'+pos(d.a)+'%"></i></div><div class="gl"><span>Understable</span><span>Hollow = factory · Solid = yours</span><span>Overstable</span></div></div>';
+}
+function render(){
+  var q=document.getElementById('q').value.toLowerCase();
+  var tabs=['All'].concat(TYPES);
+  document.getElementById('tabs').innerHTML=tabs.map(function(t){
+    var c=t==='All'?discs.length:discs.filter(function(d){return d.type===t}).length;
+    return '<button class="'+(filter===t?'on':'')+'" onclick="setF(\''+t+'\')">'+t+' ('+c+')</button>';
+  }).join('');
+  var changed=discs.filter(function(d){return verdict(d)[1]!=='z'}).length;
+  document.getElementById('s1').textContent=discs.length;document.getElementById('s2').textContent=discs.filter(function(d){return verdict(d)[1]==='u'}).length;document.getElementById('s3').textContent=discs.filter(function(d){return verdict(d)[1]==='o'}).length;
+  var rows=discs.filter(function(d){
+    return (filter==='All'||d.type===filter)&&(!q||(d.name+' '+d.brand+' '+d.plastic).toLowerCase().indexOf(q)>-1);
+  });
+  if(!rows.length){
+    document.getElementById('list').innerHTML='<div class="empty">'+(discs.length?'No discs match.':'Your bag is empty.<br><br><button class="p" onclick="openCat()">Browse the catalog</button> <button onclick="sample()">Load a sample bag</button>')+'</div>';
+    return;
+  }
+  document.getElementById('list').innerHTML=rows.map(function(d){
+    var v=verdict(d);
+    var meta=[d.brand,d.plastic,d.weight?d.weight+'g':''].filter(Boolean).map(esc).join(' · ');
+    return '<div class="disc" style="--dc:'+esc(d.color||'#888')+'">'+
+      '<div class="top"><div class="puck"><i>'+fmt(d.f[0])+'</i></div><div class="info"><div class="nm">'+esc(d.name)+'</div><div class="meta">'+esc(d.type)+(meta?' · '+meta:'')+'</div></div><span class="badge '+v[1]+'">'+v[0]+'</span></div>'+
+      '<div class="body"><div class="tbl">'+tbl(d)+'</div><svg class="fl" viewBox="0 0 96 128"><line x1="48" y1="8" x2="48" y2="120" stroke="var(--line)" stroke-width="1"/><line x1="8" y1="64" x2="88" y2="64" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"/><path d="'+path(d.f)+'" fill="none" stroke="var(--mut)" stroke-width="2" stroke-dasharray="4 4"/><path d="'+path(d.a)+'" fill="none" stroke="var(--'+(v[1]==='u'?'under':v[1]==='o'?'over':'acc')+')" stroke-width="3.5" stroke-linecap="round"/><circle cx="48" cy="118" r="3.5" fill="var(--ink)"/></svg></div>'+
+      gauge(d)+(d.notes?'<div class="note">'+esc(d.notes)+'</div>':'')+
+      '<div class="acts"><button class="sm" onclick="openForm(\''+d.id+'\')">Edit</button><button class="sm" onclick="del(\''+d.id+'\')">Remove</button></div></div>';
+  }).join('');
+}
+function setF(t){filter=t;render()}
+function del(id){if(confirm('Remove this disc from your bag?')){discs=discs.filter(function(d){return d.id!==id});save();render()}}
+function openForm(id,pre){
+  editing=id||null;
+  var d=id?discs.filter(function(x){return x.id===id})[0]:pre||{name:'',brand:'',type:'Midrange',plastic:'',weight:'',color:'#2f7d4f',f:[5,4,-1,1],a:[5,4,-1,1],notes:''};
+  var labels=['Speed','Glide','Turn','Fade'];
+  function row(prefix,arr){return '<div class="g4">'+labels.map(function(l,i){return '<div><label>'+l+'</label><input type="number" step="0.5" id="'+prefix+i+'" value="'+arr[i]+'"></div>'}).join('')+'</div>'}
+  document.getElementById('sheet').innerHTML=
+    '<h2 style="margin:0 0 4px">'+(id?'Edit disc':'Add disc')+'</h2>'+
+    '<div class="g2"><div><label>Name</label><input id="fn" value="'+esc(d.name)+'"></div><div><label>Brand</label><input id="fb" value="'+esc(d.brand)+'"></div>'+
+    '<div><label>Type</label><select id="ft">'+TYPES.map(function(t){return '<option'+(t===d.type?' selected':'')+'>'+t+'</option>'}).join('')+'</select></div>'+
+    '<div><label>Plastic</label><input id="fp" value="'+esc(d.plastic)+'"></div>'+
+    '<div><label>Weight (g)</label><input id="fw" type="number" value="'+esc(d.weight)+'"></div>'+
+    '<div><label>Color</label><input id="fc" type="color" value="'+esc(d.color||'#2f7d4f')+'"></div></div>'+
+    '<label>Factory flight numbers</label>'+row('f',d.f)+
+    '<label>How it really flies for you</label>'+row('a',d.a)+
+    '<div class="pre"><button class="sm" onclick="preset(-2,-1.5)">Super understable</button><button class="sm" onclick="preset(-1,-.5)">Understable</button><button class="sm" onclick="preset(0,0)">As stated</button><button class="sm" onclick="preset(1,1)">Overstable</button><button class="sm" onclick="preset(2,2)">Beefy</button></div>'+
+    '<div class="meta">Presets shift turn and fade from the factory numbers. Fine-tune above.</div>'+
+    '<label>Notes</label><textarea id="fo" rows="2" placeholder="Beat in, hyzer-flips at 350ft, great for forehand…">'+esc(d.notes)+'</textarea>'+
+    '<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end"><button onclick="closeForm()">Cancel</button><button class="p" onclick="saveForm()">Save</button></div>';
+  document.getElementById('modal').classList.add('show');
+}
+function g(id){return parseFloat(document.getElementById(id).value)||0}
+function preset(dt,df){
+  var t=Math.max(-5,Math.min(1,g('f2')+dt)),f=Math.max(0,Math.min(6,g('f3')+df));
+  document.getElementById('a0').value=g('f0');document.getElementById('a1').value=g('f1');
+  document.getElementById('a2').value=t;document.getElementById('a3').value=f;
+}
+function closeForm(){document.getElementById('modal').classList.remove('show')}
+function saveForm(){
+  var name=document.getElementById('fn').value.trim();
+  if(!name){document.getElementById('fn').focus();return}
+  var d={id:editing||('d'+Date.now()),name:name,brand:document.getElementById('fb').value.trim(),type:document.getElementById('ft').value,plastic:document.getElementById('fp').value.trim(),weight:document.getElementById('fw').value,color:document.getElementById('fc').value,f:[g('f0'),g('f1'),g('f2'),g('f3')],a:[g('a0'),g('a1'),g('a2'),g('a3')],notes:document.getElementById('fo').value.trim()};
+  if(editing)discs=discs.map(function(x){return x.id===editing?d:x});else discs.push(d);
+  save();closeForm();render();
+}
+function sample(){
+  var s=[['Destroyer','Innova','Distance driver','Star',175,'#d9402b',[12,5,-1,3],[12,5,-3,2],'Beat in, turns over on full power'],
+  ['Buzzz','Discraft','Midrange','ESP',177,'#e8c32a',[5,4,-1,1],[5,4,-1,1],'Go-to approach disc'],
+  ['Judge','Dynamic Discs','Putter','Classic',173,'#3b6fd1',[2,4,0,1],[2,3,1,3],'Super beefy, never turns'],
+  ['Teebird','Innova','Fairway driver','Champion',171,'#7a3fb0',[7,5,-2,1],[7,5,-2,1],'']];
+  s.forEach(function(r,i){discs.push({id:'s'+i+Date.now(),name:r[0],brand:r[1],type:r[2],plastic:r[3],weight:r[4],color:r[5],f:r[6],a:r[7],notes:r[8]})});
+  save();render();
+}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('tg').textContent=t==='dark'?'☀️ Light':'🌙 Dark'}
+function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);try{localStorage.setItem('discgolf-theme',t)}catch(e){}}
+function initTheme(){var t=null;try{t=localStorage.getItem('discgolf-theme')}catch(e){}if(t!=='dark'&&t!=='light'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}applyTheme(t)}
+
+var CAT=[['Destroyer','Innova',12,5,-1,3],['Wraith','Innova',11,5,-1,3],['Boss','Innova',13,5,-1,3],['Shryke','Innova',13,6,-2,2],['Beast','Innova',10,5,-3,1],['Sidewinder','Innova',9,5,-3,1],['Firebird','Innova',9,3,0,4],['Thunderbird','Innova',9,5,0,2],['Valkyrie','Innova',9,4,-2,1],['Teebird','Innova',7,5,-2,1],['Leopard3','Innova',7,5,-2,1],['Eagle','Innova',7,4,-1,3],['Roc3','Innova',5,4,0,3],['Mako3','Innova',5,5,0,0],['Roc','Innova',4,4,0,3],['Dart','Innova',3,4,-1,1],['Rhyno','Innova',4,3,0,3],['Aviar','Innova',2,3,0,1],
+['Zeus','Discraft',12,5,-1,3],['Force','Discraft',12,5,0,3],['Nuke','Discraft',13,5,-1,3],['Passion','Discraft',9,5,-1,2],['Raptor','Discraft',9,4,-3,1],['Buzzz','Discraft',5,4,-1,1],['Zone','Discraft',4,3,0,3],['Luna','Discraft',3,3,0,3],['Challenger','Discraft',3,3,0,2],['Magnet','Discraft',3,3,0,1],
+['Trespass','Dynamic Discs',12,5,-2,1],['Escape','Dynamic Discs',9,5,-1,2],['Truth','Dynamic Discs',5,5,-1,0],['Judge','Dynamic Discs',2,4,0,1],
+['River','Latitude 64',7,7,-1,1],['Volt','MVP',8,5,-1,2],['Envy','MVP',3,3,0,2],['PA-3','Prodigy',3,2,0,1],['Berg','Kastaplast',1,1,0,2]];
+var PAL=['#6d28d9','#d9402b','#2f7d4f','#e8c32a','#3b6fd1','#e07a2f','#1aa5a5','#c2358f'];
+function typeOf(r){if(r[0]==='Rhyno'||r[0]==='Zone')return'Putter';var v=r[2];return v>=9?'Distance driver':v>=6?'Fairway driver':v>=4?'Midrange':'Putter'}
+function openCat(){
+  document.getElementById('sheet').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Disc catalog</h2><button class="sm p" onclick="closeForm()">Done</button></div><div class="meta">Tap Add to put a disc in your bag, then tune how it flies. Numbers are manufacturer-stated and can vary by source.</div><div class="g2" style="margin-top:8px"><input id="cq" placeholder="Search name or brand…" oninput="catList()"><select id="ct" onchange="catList()"><option value="">All types</option>'+TYPES.slice(0,4).map(function(t){return '<option>'+t+'</option>'}).join('')+'</select></div><div class="cl" id="cl"></div><div style="margin-top:10px"><button class="sm" onclick="openForm()">Can\u2019t find it? Add a custom disc</button></div>';
+  document.getElementById('modal').classList.add('show');catList();
+}
+function catList(){
+  var q=document.getElementById('cq').value.toLowerCase(),t=document.getElementById('ct').value;
+  var rows=CAT.map(function(r,i){return{r:r,i:i}}).filter(function(x){return (!t||typeOf(x.r)===t)&&(!q||(x.r[0]+' '+x.r[1]).toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return a.r[0].localeCompare(b.r[0])});
+  document.getElementById('cl').innerHTML=rows.length?rows.map(function(x){
+    var r=x.r,have=discs.some(function(d){return d.name.toLowerCase()===r[0].toLowerCase()});
+    return '<div class="cr"><div><div class="nm" style="font-size:15px">'+esc(r[0])+'</div><div class="meta">'+esc(r[1])+' · '+typeOf(r)+' · '+r[2]+' / '+r[3]+' / '+r[4]+' / '+r[5]+'</div></div>'+(have?'<button class="sm" disabled>In bag ✓</button>':'<button class="sm p" onclick="catAdd('+x.i+')">Add</button>')+'</div>';
+  }).join(''):'<div class="empty">No matches. Add it as a custom disc below.</div>';
+}
+function catAdd(i){
+  var r=CAT[i],f=[r[2],r[3],r[4],r[5]];
+  discs.push({id:'c'+Date.now()+i,name:r[0],brand:r[1],type:typeOf(r),plastic:'',weight:'',color:PAL[discs.length%PAL.length],f:f,a:f.slice(),notes:''});
+  save();render();catList();
+}
+var samp=null,ctl=null;
+function norm(r){
+  r=r||{};var n=String(r.name||'').trim();
+  var m=CAT.filter(function(c){return c[0].toLowerCase()===n.toLowerCase()})[0];
+  var f=m?[m[2],m[3],m[4],m[5]]:(Array.isArray(r.f)&&r.f.length===4?r.f.map(Number):[5,4,-1,1]);
+  f=f.map(function(v){return isFinite(v)?v:0});
+  return{name:n,brand:m?m[1]:String(r.brand||''),type:TYPES.indexOf(r.type)>-1?r.type:(m?typeOf(m):'Midrange'),plastic:String(r.plastic||''),weight:isFinite(r.weight)&&r.weight?r.weight:'',color:/^#[0-9a-f]{6}$/i.test(r.color||'')?r.color:'#6d28d9',f:f,a:f.slice(),notes:String(r.notes||'')};
+}
+function scanMsg(h,b,btns){document.getElementById('sheet').innerHTML='<h2 style="margin:0 0 6px">'+h+'</h2><div class="meta">'+b+'</div><div style="margin-top:14px;display:flex;gap:8px">'+btns+'</div>';document.getElementById('modal').classList.add('show')}
+function scanClick(){
+  if(samp){document.getElementById('cam').click();return}
+  scanMsg('Photo scan isn\u2019t available here','Reading a disc from a photo needs this page opened in Claude with permission to use it. You can still add discs from the catalog or as a custom disc.','<button class="p" onclick="openCat()">Catalog</button><button onclick="openForm()">Add custom</button>');
+}
+function scanStop(){if(ctl)ctl.abort();closeForm()}
+function scanDone(inp){
+  var f=inp.files&&inp.files[0];inp.value='';
+  if(!f||!samp)return;
+  ctl=new AbortController();
+  scanMsg('Reading your disc…','Checking the stamp, mold, plastic and color. This can take a few seconds.','<button onclick="scanStop()">Cancel</button>');
+  var prompt='This is a photo of a disc golf disc. Identify it from the stamp text, mold name, brand, plastic type and color. Reply with ONLY a JSON object: {"name":string,"brand":string,"type":one of '+JSON.stringify(TYPES)+',"plastic":string,"weight":number or null,"color":"#rrggbb of the disc body","f":[speed,glide,turn,fade] manufacturer flight numbers or null if unsure,"notes":short string about what you could read or are unsure of}. Use empty strings or null for anything you cannot read. Do not guess.';
+  samp.json(prompt,{images:f,signal:ctl.signal}).then(function(r){openForm(null,norm(r))}).catch(function(e){
+    if(e&&e.code==='cancelled')return;
+    scanMsg('Couldn\u2019t read that one','Try a closer, well-lit photo of the top of the disc, or add it from the catalog.','<button class="p" onclick="openCat()">Catalog</button><button onclick="openForm()">Add manually</button>');
+  });
+}
+try{if(window.claude&&claude.use){claude.use('sample').then(function(sm){
+  if(!sm)return;samp=sm;
+  return sm.limits().then(function(l){if(l&&l.images){document.getElementById('cam').accept=l.images.mediaTypes.join(',');document.getElementById('scanBtn').hidden=false}});
+}).catch(function(){})}}catch(e){}
+initTheme();
+load();render();
+</script>
+</body>
+</html>
